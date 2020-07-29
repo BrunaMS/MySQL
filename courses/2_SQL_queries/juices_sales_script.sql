@@ -144,3 +144,157 @@ CASE
     WHEN YEAR(DATA_DE_NASCIMENTO) >= 1990 AND YEAR(DATA_DE_NASCIMENTO) <= 1995 THEN 'YOUNG'
     ELSE 'CHILD'
 END AS AGE_CLASSIFICATION FROM tabela_de_clientes;
+
+-- ------------------------ FOURTH CLASS ------------------------ -- 
+-- JOIN
+	-- - Allow us to unit one or more tables, according to the keys
+    -- - INNER JOIN - Join data from both tables.
+    -- - LEFT  JOIN - Take records with the same ID from the 2nd table to the 1st one.
+    -- - RIGHT JOIN - Take records with the same ID from the 1st table to the 2nd one.
+    -- - FULL  JOIN - Take all records from the 2nd table to the 1st one. (DOESN'T WORK WITH MYSQL)
+    -- - CROSS JOIN - Use cartesian product to join both tables.
+    
+SELECT * FROM tabela_de_vendedores;
+SELECT * FROM notas_fiscais;
+
+SELECT A.MATRICULA, A.NOME, COUNT(*) FROM tabela_de_vendedores A
+INNER JOIN notas_fiscais B
+ON A.MATRICULA = B.MATRICULA 
+GROUP BY A.MATRICULA, A.NOME;
+
+-- -------------------------------
+
+SELECT * FROM itens_notas_fiscais;
+SELECT * FROM notas_fiscais;
+
+SELECT YEAR(B.DATA_VENDA), SUM(A.QUANTIDADE * A.PRECO) AS GAIN
+FROM itens_notas_fiscais A INNER JOIN notas_fiscais B
+ON A.NUMERO = B.NUMERO
+GROUP BY YEAR(B.DATA_VENDA); 
+
+-- -------------------------- LEFT AND RIGHT JOIN EXAMPLES -------------------------- --
+
+SELECT COUNT(*) FROM tabela_de_clientes; -- NUMBER OF REGISTERED CUSTOMERS 
+SELECT CPF, COUNT(*) FROM notas_fiscais GROUP BY CPF; 
+-- There is 1 customer out of this table, what means that it have never bought a product there.
+
+SELECT DISTINCT A.CPF, A.NOME, B.CPF FROM tabela_de_clientes A 
+INNER JOIN notas_fiscais B ON A.CPF = B.CPF;
+
+SELECT DISTINCT A.CPF, A.NOME, B.CPF FROM tabela_de_clientes A 
+LEFT JOIN notas_fiscais B ON A.CPF = B.CPF;
+
+SELECT DISTINCT A.CPF, A.NOME, B.CPF FROM tabela_de_clientes A 
+LEFT JOIN notas_fiscais B ON A.CPF = B.CPF WHERE B.CPF IS NULL;
+
+-- -------------------------- FULL AND CROSS JOIN EXAMPLES -------------------------- --
+
+SELECT * FROM tabela_de_clientes;
+SELECT * FROM tabela_de_vendedores;
+
+SELECT * FROM tabela_de_vendedores
+INNER JOIN tabela_de_clientes ON tabela_de_clientes.BAIRRO = tabela_de_vendedores.BAIRRO;
+
+SELECT tabela_de_vendedores.BAIRRO, tabela_de_vendedores.NOME, tabela_de_clientes.BAIRRO, tabela_de_clientes.NOME 
+FROM tabela_de_vendedores INNER JOIN tabela_de_clientes 
+ON tabela_de_clientes.BAIRRO = tabela_de_vendedores.BAIRRO;
+
+SELECT tabela_de_vendedores.BAIRRO, tabela_de_vendedores.NOME, tabela_de_clientes.BAIRRO, tabela_de_clientes.NOME 
+FROM tabela_de_vendedores LEFT JOIN tabela_de_clientes 
+ON tabela_de_clientes.BAIRRO = tabela_de_vendedores.BAIRRO;
+
+SELECT tabela_de_vendedores.BAIRRO, tabela_de_vendedores.NOME, tabela_de_clientes.BAIRRO, tabela_de_clientes.NOME 
+FROM tabela_de_vendedores RIGHT JOIN tabela_de_clientes 
+ON tabela_de_clientes.BAIRRO = tabela_de_vendedores.BAIRRO;
+
+SELECT tabela_de_vendedores.BAIRRO, tabela_de_vendedores.NOME, tabela_de_clientes.BAIRRO, tabela_de_clientes.NOME 
+FROM tabela_de_vendedores RIGHT JOIN tabela_de_clientes 
+ON tabela_de_clientes.BAIRRO = tabela_de_vendedores.BAIRRO;
+
+SELECT tabela_de_vendedores.BAIRRO, tabela_de_vendedores.NOME, tabela_de_clientes.BAIRRO, tabela_de_clientes.NOME 
+FROM tabela_de_vendedores FULL JOIN tabela_de_clientes 
+ON tabela_de_clientes.BAIRRO = tabela_de_vendedores.BAIRRO; -- DOES NOT WORK.
+
+SELECT tabela_de_vendedores.BAIRRO, tabela_de_vendedores.NOME, tabela_de_clientes.BAIRRO, tabela_de_clientes.NOME 
+FROM tabela_de_vendedores CROSS JOIN tabela_de_clientes 
+ON tabela_de_clientes.BAIRRO = tabela_de_vendedores.BAIRRO;
+
+
+
+
+-- -------------------------------------- JOIN QUERIES -------------------------------------- --
+
+-- UNION: join two queries
+	-- The queries need to have the same type and number of fields
+    -- Join and make DISTINCT automatically
+-- UNION ALL: DOESN'T apply DISTINCT in the obtained result
+
+SELECT DISTINCT BAIRRO FROM tabela_de_clientes;
+SELECT DISTINCT BAIRRO FROM tabela_de_vendedores;
+
+SELECT DISTINCT BAIRRO FROM tabela_de_clientes UNION
+SELECT DISTINCT BAIRRO FROM tabela_de_vendedores;
+
+SELECT DISTINCT BAIRRO FROM tabela_de_clientes UNION ALL
+SELECT DISTINCT BAIRRO FROM tabela_de_vendedores;
+
+SELECT DISTINCT BAIRRO, NOME, 'CLIENT' AS TIPO, CPF AS ID FROM tabela_de_clientes UNION
+SELECT DISTINCT BAIRRO, NOME, 'SALESPERSON' AS TIPO, MATRICULA FROM tabela_de_vendedores;
+-- Show the alias defined in the first query.
+
+-- USING UNION TO DO A FULL JOIN
+
+SELECT tabela_de_vendedores.BAIRRO, tabela_de_vendedores.NOME, tabela_de_clientes.BAIRRO, tabela_de_clientes.NOME, DE_FERIAS 
+FROM tabela_de_vendedores RIGHT JOIN tabela_de_clientes 
+ON tabela_de_clientes.BAIRRO = tabela_de_vendedores.BAIRRO
+UNION
+SELECT tabela_de_vendedores.BAIRRO, tabela_de_vendedores.NOME, tabela_de_clientes.BAIRRO, tabela_de_clientes.NOME, NULL 
+FROM tabela_de_vendedores LEFT JOIN tabela_de_clientes 
+ON tabela_de_clientes.BAIRRO = tabela_de_vendedores.BAIRRO;
+
+-- ------------------------------ SUB-QUERIES ------------------------------ --
+
+-- Query into another Query 0.0)
+	-- Example: SELECT X, Y FROM TAB1 WHERE Y IN (SELECT Y FROM TAB2)
+    
+SELECT DISTINCT BAIRRO FROM tabela_de_vendedores;
+
+SELECT * FROM tabela_de_clientes WHERE BAIRRO IN (SELECT DISTINCT BAIRRO FROM tabela_de_vendedores);
+
+SELECT EMBALAGEM, MAX(PRECO_DE_LISTA) FROM tabela_de_produtos GROUP BY EMBALAGEM;
+
+SELECT MAX_PACKAGE_PRICE.EMBALAGEM, MAX_PACKAGE_PRICE.MAX_PRICE FROM
+(SELECT EMBALAGEM, MAX(PRECO_DE_LISTA) AS MAX_PRICE FROM tabela_de_produtos GROUP BY EMBALAGEM) MAX_PACKAGE_PRICE
+WHERE MAX_PACKAGE_PRICE.MAX_PRICE > 10;
+
+-- -------------------------------------
+
+SELECT CPF, COUNT(*) FROM notas_fiscais
+WHERE YEAR(DATA_VENDA) = 2016
+GROUP BY CPF
+HAVING COUNT(*) > 2000;
+
+SELECT SUB_CPF.CPF, SUB_CPF.TIMES_COUNT FROM
+(SELECT CPF, COUNT(*) AS TIMES_COUNT FROM notas_fiscais WHERE YEAR(DATA_VENDA) = 2016 GROUP BY CPF) SUB_CPF
+WHERE SUB_CPF.TIMES_COUNT > 2000;
+
+
+-- --------------------------- VIEW --------------------------- --
+
+-- Query that can be saved as a table
+	-- Very useful when we need to show only some fields of a table
+    -- Similar to a sub-query
+
+SELECT X.EMBALAGEM, X.MAIOR_PRECO FROM    
+(SELECT EMBALAGEM, MAX(PRECO_DE_LISTA) AS MAIOR_PRECO FROM tabela_de_produtos GROUP BY EMBALAGEM) X
+WHERE MAIOR_PRECO >= 10;
+
+CREATE OR REPLACE VIEW `VW_HIGHER_PACKAGES` AS 
+SELECT EMBALAGEM, MAX(PRECO_DE_LISTA) AS MAIOR_PRECO FROM tabela_de_produtos GROUP BY EMBALAGEM;
+
+SELECT EMBALAGEM, MAIOR_PRECO FROM VW_HIGHER_PACKAGES WHERE MAIOR_PRECO >= 10;
+
+SELECT A.EMBALAGEM, A.NOME_DO_PRODUTO, A.PRECO_DE_LISTA, X.MAIOR_PRECO,
+(A.PRECO_DE_LISTA * 100 / X.MAIOR_PRECO) AS 'PERCENT'
+FROM tabela_de_produtos A INNER JOIN  VW_HIGHER_PACKAGES X
+ON A.EMBALAGEM = X.EMBALAGEM; 
