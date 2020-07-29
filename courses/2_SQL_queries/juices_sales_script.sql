@@ -298,3 +298,109 @@ SELECT A.EMBALAGEM, A.NOME_DO_PRODUTO, A.PRECO_DE_LISTA, X.MAIOR_PRECO,
 (A.PRECO_DE_LISTA * 100 / X.MAIOR_PRECO) AS 'PERCENT'
 FROM tabela_de_produtos A INNER JOIN  VW_HIGHER_PACKAGES X
 ON A.EMBALAGEM = X.EMBALAGEM; 
+
+-- -------------------------------------------- FUNCTIONS -------------------------------------------- --
+
+-- Greater difference between types of SQL
+
+-- Math functions (manipulate numeric fields)
+-- String functions (manipulate text/strings fields)
+	-- Example: CONCAT() function
+		-- SELECT CONCAT("Hello ", "World", "!");
+	-- LCASE() or UCASE() functions
+		-- convert all characters to lower/uppercase.
+-- Date functions (manipulate date fields)
+
+-- Documentation: https://dev.mysql.com/doc/refman/8.0/en/functions.html
+-- W3schools: https://www.w3schools.com/sql/sql_ref_mysql.asp
+
+-- ----------------------------------------- STRING FUNCTIONS ----------------------------------------- --
+
+SELECT LTRIM('     Hello     ') AS result_ltrim, 
+RTRIM('     Hello     ') AS result_rtrim, 
+TRIM('     Hello     ') AS result_trim;
+
+SELECT SUBSTRING("Hello, How are you?", 1,5);
+SELECT UCASE("Do you know SQL?");
+SELECT LCASE("Have you ever learned SQL with MySQL?");
+
+-- ------------------------------------------------------
+
+SELECT NOME, CONCAT(CIDADE, " ", BAIRRO, " ", ENDERECO_1, " ", ENDERECO_2) AS ADDRESS FROM tabela_de_clientes;
+
+-- ----------------------------------------- DATE FUNCTIONS ----------------------------------------- --
+
+SELECT ADDDATE("2020-06-19", INTERVAL 15 DAY);
+SELECT CURDATE();
+SELECT CURRENT_TIMESTAMP();
+SELECT CURRENT_TIME();
+SELECT DATEDIFF("2020-08-20", CURDATE());
+
+SELECT DAY(CURRENT_TIMESTAMP());
+SELECT MONTH(CURRENT_TIMESTAMP());
+
+SELECT DATEDIFF(CURDATE(), "1998-06-19");
+
+SELECT DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 5 DAY) AS RESULT;
+
+SELECT DATA_VENDA, DAYNAME(DATA_VENDA), MONTHNAME(DATA_VENDA) FROM notas_fiscais;
+
+SELECT NOME, (YEAR(CURDATE()) - YEAR(DATA_DE_NASCIMENTO)) AS AGE FROM tabela_de_clientes;
+SELECT NOME, TIMESTAMPDIFF(YEAR, DATA_DE_NASCIMENTO, CURDATE()) AS AGE FROM tabela_de_clientes;
+
+-- ----------------------------------------- NUMERIC FUNCTIONS ----------------------------------------- --
+
+SELECT ((23 + 25) / 2 * 45);
+
+SELECT 10/3;
+SELECT CEILING(10/3);
+SELECT ROUND(10/3);
+SELECT FLOOR(10/3);
+
+SELECT RAND();
+
+SELECT NUMERO, QUANTIDADE, PRECO, QUANTIDADE * PRECO AS FATURAMENTO FROM itens_notas_fiscais;
+SELECT NUMERO, QUANTIDADE, PRECO, ROUND(QUANTIDADE * PRECO, 2) AS FATURAMENTO FROM itens_notas_fiscais;
+
+-- -----------------------------------------------------------
+CREATE OR REPLACE VIEW `VW_NF_INF` AS 
+SELECT NF.CPF, NF.NUMERO, NF.IMPOSTO, YEAR(NF.DATA_VENDA) AS YEAR, INF.PRECO, INF.QUANTIDADE
+FROM notas_fiscais NF INNER JOIN itens_notas_fiscais INF 
+ON NF.NUMERO = INF.NUMERO; 
+
+SELECT * FROM VW_NF_INF;
+
+SELECT YEAR, FLOOR(SUM(QUANTIDADE * PRECO * IMPOSTO)) AS IMPOSTO_TOTAL 
+FROM VW_NF WHERE YEAR = 2016 GROUP BY YEAR;
+
+SELECT YEAR(DATA_VENDA), IMPOSTO FROM notas_fiscais;
+
+
+-- ------------------------------------ DATA CONVERSION ------------------------------------ --
+-- DATE_FORMAT 
+	-- DOCUMENTATION: https://www.w3schools.com/sql/func_mysql_date_format.asp
+
+SELECT CURRENT_TIMESTAMP();
+SELECT CONCAT("CURRENT DATE: ", CURRENT_TIMESTAMP());
+
+
+SELECT CONCAT("CURRENT YEAR (4D): ", DATE_FORMAT(CURRENT_TIMESTAMP(), "%Y"));
+SELECT CONCAT("CURRENT YEAR (2D): ", DATE_FORMAT(CURRENT_TIMESTAMP(), "%y"));
+SELECT CONCAT("CURRENT MONTH/YEAR: ", DATE_FORMAT(CURRENT_TIMESTAMP(), "%m/%y"));
+SELECT CONCAT("COMPLETE CURRENT DATE: ", DATE_FORMAT(CURRENT_TIMESTAMP(), "%d/%m/%Y"));
+
+
+SELECT CONVERT(23.3, CHAR);
+SELECT SUBSTRING(CONVERT(23.3, CHAR), 1, 1) AS FIRST_DIGIT;
+
+-- ----------------------------------------------------
+
+SELECT CONCAT('The costumer ', NOME, 
+' spent around ', ROUND(SUM(VW_NF_INF.QUANTIDADE * VW_NF_INF.PRECO), 2) AS SPENT, 
+' in ', YEAR)
+FROM VW_NF_INF INNER JOIN tabela_de_clientes ON VW_NF_INF.CPF = tabela_de_clientes.CPF
+WHERE YEAR = 2016
+GROUP BY VW_NF_INF.CPF;
+
+-- CONCAT('The customer ', NOME, 'SPENT R$', 
+-- CONVERT(SUM(VW_NF_INF.QUANTIDADE * VW_NF_INF.PRECO), CHAR), 'EM', YEAR)
