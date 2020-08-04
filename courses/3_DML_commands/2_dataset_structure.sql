@@ -19,10 +19,10 @@
 
 -- CREATE DATABASE IF NOT EXISTS `JUICE_SALES`;
 
--- DROP DATABASE IF EXISTS `JUICE_SALES`;
+DROP DATABASE IF EXISTS `JUICE_SALES`;
 
 CREATE DATABASE IF NOT EXISTS `JUICE_SALES`
-	DEFAULT CHARACTER SET ascii; -- can be utf8 to use brazilian portuguese
+	DEFAULT CHARACTER SET utf8; -- can be utf8 to use brazilian portuguese or ascii to english
 
 USE JUICE_SALES;
 
