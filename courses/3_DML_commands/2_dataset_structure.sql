@@ -19,7 +19,7 @@
 
 -- CREATE DATABASE IF NOT EXISTS `JUICE_SALES`;
 
-DROP DATABASE IF EXISTS `JUICE_SALES`;
+-- DROP DATABASE IF EXISTS `JUICE_SALES`;
 
 CREATE DATABASE IF NOT EXISTS `JUICE_SALES`
 	DEFAULT CHARACTER SET utf8; -- can be utf8 to use brazilian portuguese or ascii to english
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS TB_SALESPEOPLE(
     name VARCHAR(100) NULL,
     district VARCHAR(50) NULL,
     comission FLOAT NULL,
-    adimission_date DATE NULL,
+    admission_date DATE NULL,
     vacation BOOLEAN NULL,
 	PRIMARY KEY (register)
 );
@@ -103,7 +103,7 @@ number VARCHAR(5) NOT NULL,
 product_code VARCHAR(10) NOT NULL,
 quantity INT DEFAULT NULL,
 price FLOAT DEFAULT NULL,
-PRIMARY KEY(number),
+-- PRIMARY KEY(number),
 FOREIGN KEY(number) REFERENCES TB_SALES(number),
 FOREIGN KEY(product_code) REFERENCES TB_PRODUCTS(product_code)
 );

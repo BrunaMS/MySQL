@@ -1,0 +1,228 @@
+-- ------------------- AUTO INCREMENT ------------------- --
+/*
+- Characteristic of integer numbers
+- Field that will be incremented (added 1) as we do the INSERT (add records) and define another fields
+- We can have just one field with AUTO_INCREMENT per table
+- We can force a new value to the record during the INSERT command
+- Also, auto increment fields have to be primary key.
+*/
+
+USE JUICE_SALES;
+
+CREATE TABLE IF NOT EXISTS TB_IDENTITY 
+(id INT AUTO_INCREMENT,
+descriptor VARCHAR(20),
+PRIMARY KEY(id));
+
+INSERT INTO TB_IDENTITY (descriptor) VALUES('client 1'), ('client 2'), ('client 3');
+INSERT INTO TB_IDENTITY (id, descriptor) VALUES(NULL, 'client 4'), (NULL, 'client 5'), (NULL, 'client 6');
+SELECT * FROM TB_IDENTITY;
+
+INSERT INTO TB_IDENTITY (id, descriptor) VALUES(10, 'client 7');
+INSERT INTO TB_IDENTITY (descriptor) VALUES('client 8'), ('client 9'), ('client 10');
+DELETE FROM TB_IDENTITY WHERE descriptor >= 'client 7';
+SELECT * FROM TB_IDENTITY;
+
+INSERT INTO TB_IDENTITY (id, descriptor) VALUES(7, 'client 7');
+INSERT INTO TB_IDENTITY (descriptor) VALUES('client 8'), ('client 9'), ('client 10');
+SELECT * FROM TB_IDENTITY;
+
+DELETE FROM TB_IDENTITY WHERE ID = 2;
+INSERT INTO TB_IDENTITY (descriptor) VALUES('client 7');
+SELECT * FROM TB_IDENTITY;
+
+INSERT INTO TB_IDENTITY (id, descriptor) VALUES(100, 'client 100');
+INSERT INTO TB_IDENTITY (descriptor) VALUES('client 101');
+SELECT * FROM TB_IDENTITY;
+
+-- ------------------- DEFINING STANDARDS TO THE FIELDS ------------------- --
+/*
+
+*/
+
+CREATE TABLE TB_STANDARD
+(id INT AUTO_INCREMENT,
+descriptor VARCHAR(20),
+address VARCHAR(100) NULL,
+city VARCHAR(50) DEFAULT 'Rio de Janeiro',
+creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+PRIMARY KEY(id));
+
+INSERT INTO TB_STANDARD (descriptor, address, city, creation_date)
+VALUES('Client 1', 'Rua Projetada A', 'São Paulo', '2019-01-01');
+
+INSERT INTO TB_STANDARD (descriptor)
+VALUES('Client 2');
+
+SELECT * FROM TB_STANDARD;
+
+
+-- ----------------------- TRIGGER ----------------------- --
+/*
+- Do an action when a change is made into a table
+- Syntax:
+	CREATE
+		[DEFINER = <user>]
+        TRIGGER <trigger_name>
+		trigger_time trigger_event
+        ON <tbl_name> FOR EACH ROW
+        [trigger_order]
+        <trigger_body>
+        
+	trigger_time: { BEFORE | AFTER }
+    trigger_event: { INSERT | UPDATE | DELETE }
+    trigger_order: { FOLLOWS | PRECEDES } <other_trigger_name>
+*/
+
+CREATE TABLE TB_REVENUES
+(sale_date DATE NULL,
+sales_amount FLOAT);
+
+SELECT * FROM TB_REVENUES;
+
+SELECT * FROM INVOICES;
+SELECT * FROM ITEMS_INVOICES;
+SELECT * FROM TB_PRODUCTS;
+SELECT * FROM TB_CLIENTS;
+-- SELECT * FROM TB_SALESPEOPLE;
+
+INSERT INTO INVOICES 
+VALUES ('0100', '2019-05-08', '1471156710', '00235', 0.10), 
+('0101', '2019-05-08', '1471156710', '00235', 0.10),
+('0102', '2019-05-08', '1471156710', '00235', 0.10);
+
+INSERT INTO ITEMS_INVOICES 
+VALUES ('0100', '1000889', 100, 10), ('0100', '1002334', 100, 10); 
+
+INSERT INTO ITEMS_INVOICES 
+VALUES ('0101', '1000889', 100, 10), ('0101', '1002334', 100, 10); 
+
+INSERT INTO ITEMS_INVOICES 
+VALUES ('0102', '1000889', 100, 10), ('0102', '1002334', 100, 10);
+
+SELECT A.date, SUM(quantity * price) AS sales_amount FROM 
+INVOICES A INNER JOIN ITEMS_INVOICES B
+ON A.number = B.number
+GROUP BY A.date;
+
+INSERT INTO TB_REVENUES
+SELECT A.date AS sale_date, SUM(quantity * price) AS sales_amount FROM 
+INVOICES A INNER JOIN ITEMS_INVOICES B
+ON A.number = B.number
+GROUP BY A.date;
+
+SELECT * FROM TB_REVENUES;
+
+INSERT INTO INVOICES 
+VALUES ('0103', '2019-05-08', '1471156710', '00235', 0.30);
+INSERT INTO ITEMS_INVOICES 
+VALUES ('0103', '1000889', 100, 10), ('0103', '1002334', 100, 15);
+
+INSERT INTO INVOICES 
+VALUES ('0104', '2019-05-11', '1471156710', '00235', 0.30);
+INSERT INTO ITEMS_INVOICES 
+VALUES ('0104', '1000889', 100, 23), ('0104', '1002334', 100, 9);
+
+INSERT INTO INVOICES 
+VALUES ('0105', '2019-05-11', '1471156710', '00235', 0.30);
+INSERT INTO ITEMS_INVOICES 
+VALUES ('0105', '1004327', 70, 23), ('0104', '1040110', 20, 9);
+
+DELETE FROM TB_REVENUES;
+INSERT INTO TB_REVENUES
+SELECT A.date AS sale_date, SUM(quantity * price) AS sales_amount FROM 
+INVOICES A INNER JOIN ITEMS_INVOICES B
+ON A.number = B.number
+GROUP BY A.date;
+
+SELECT * FROM TB_REVENUES;
+
+INSERT INTO INVOICES 
+VALUES ('0107', '2019-06-02', '2600586709', '00235', 0.11);
+INSERT INTO ITEMS_INVOICES 
+VALUES ('0107', '1004327', 5, 12), ('0107', '1040110', 30, 25);
+
+INSERT INTO INVOICES 
+VALUES ('0106', '2019-05-11', '2600586709', '00235', 0.11);
+INSERT INTO ITEMS_INVOICES 
+VALUES ('0106', '1004327', 3, 45), ('0104', '1040110', 27, 13);
+
+SELECT * FROM TB_REVENUES;
+
+-- USING TRIGGER
+
+DELIMITER //
+CREATE TRIGGER TG_CALCULATE_REVENUE_INSERT AFTER INSERT ON ITEMS_INVOICES
+FOR EACH ROW BEGIN
+	DELETE FROM TB_REVENUES;
+	INSERT INTO TB_REVENUES
+	SELECT A.date AS sale_date, SUM(quantity * price) AS sales_amount FROM 
+	INVOICES A INNER JOIN ITEMS_INVOICES B
+	ON A.number = B.number
+	GROUP BY A.date;
+END//
+
+SELECT * FROM TB_CLIENTS;
+
+CREATE TABLE IF NOT EXISTS TB_CLIENTS_AGE 
+(cpf VARCHAR(11),
+age SMALLINT(6),
+FOREIGN KEY(cpf) REFERENCES TB_CLIENTS(cpf));
+
+INSERT INTO TB_CLIENTS_AGE
+SELECT cpf, timestampdiff(YEAR, date_of_birth, now()) AS age
+FROM TB_CLIENTS;
+
+-- ------------------------------------------
+
+INSERT INTO TB_CLIENTS VALUES
+('01020405887', 'Joao da Silva Santos', 'Rua 04 Casa 15A', 'Setor Norte', 'Gama', 'DF', '11506487', '1974-06-01', NULL, 'F', 20000, 150, 0);
+
+DELIMITER //
+CREATE TRIGGER TG_CLIENTS_AGE_INSERT BEFORE INSERT ON TB_CLIENTS
+FOR EACH ROW BEGIN
+	INSERT INTO TB_CLIENTS_AGE
+	SELECT cpf, timestampdiff(YEAR, date_of_birth, now()) AS age
+	FROM TB_CLIENTS WHERE cpf NOT IN(SELECT cpf FROM TB_CLIENTS_AGE);
+END//
+
+-- DELIMITER //
+-- CREATE TRIGGER TG_CLIENTES_IDADE_INSERT BEFORE INSERT ON CLIENTES
+-- FOR EACH ROW
+-- BEGIN
+-- SET NEW.IDADE = timestampdiff(YEAR, NEW.DATA_NASCIMENTO, NOW());
+-- END//
+
+-- DROP TRIGGER TG_CLIENTS_AGE_INSERT;
+
+SELECT * FROM TB_CLIENTS_AGE;
+
+-- -------------------- USING TRIGGER WITH UPDATE AND DELETE -------------------- --
+DELIMITER //
+CREATE TRIGGER TG_CALCULATE_REVENUE_DELETE AFTER DELETE ON ITEMS_INVOICES
+FOR EACH ROW BEGIN
+	DELETE FROM TB_REVENUES;
+	INSERT INTO TB_REVENUES
+	SELECT A.date AS sale_date, SUM(quantity * price) AS sales_amount FROM 
+	INVOICES A INNER JOIN ITEMS_INVOICES B
+	ON A.number = B.number
+	GROUP BY A.date;
+END//
+
+DELIMITER //
+CREATE TRIGGER TG_CALCULATE_REVENUE_UPDATE AFTER UPDATE ON ITEMS_INVOICES
+FOR EACH ROW BEGIN
+	DELETE FROM TB_REVENUES;
+	INSERT INTO TB_REVENUES
+	SELECT A.date AS sale_date, SUM(quantity * price) AS sales_amount FROM 
+	INVOICES A INNER JOIN ITEMS_INVOICES B
+	ON A.number = B.number
+	GROUP BY A.date;
+END//
+
+SELECT * FROM ITEMS_INVOICES;
+SELECT * FROM TB_REVENUES;
+
+UPDATE ITEMS_INVOICES SET quantity = 200 WHERE number = '0106' AND product_code = '1004327';
+DELETE FROM ITEMS_INVOICES WHERE number = '0106' AND product_code = '1004327';
+INSERT INTO ITEMS_INVOICES VALUES ('0106', '1004327', 3, 45), ('0106', '1040110', 27, 13);

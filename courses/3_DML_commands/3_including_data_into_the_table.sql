@@ -29,10 +29,10 @@ VALUES
 
 SELECT * FROM TB_CLIENTS;
 
-DROP DATABASE IF EXISTS sucos_vendas;
-CREATE DATABASE sucos_vendas;
+-- DROP DATABASE IF EXISTS sucos_vendas;
+CREATE DATABASE IF NOT EXISTS sucos_vendas;
 
-
+-- Administration -> Data Import/restore -> DumpSucosVendas
 USE sucos_vendas;
 
 SELECT * FROM notas_fiscais LIMIT 50; 

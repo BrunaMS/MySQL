@@ -30,7 +30,6 @@ WHERE cpf = '19290992743';
 SELECT * FROM TB_CLIENTS; 
 
 -- ------------- USING UPDATE WITH FROM ------------- --
-
 SELECT * FROM TB_SALESPEOPLE; 
 SELECT * FROM sucos_vendas.tabela_de_vendedores;
 
@@ -73,15 +72,6 @@ DELETE FROM TB_PRODUCTS WHERE product_code NOT IN
 
 SELECT * FROM sucos_vendas.notas_fiscais;
 
-INSERT INTO TB_SALESPEOPLE
-SELECT DISTINCT MATRICULA AS register, 
-	   NULL AS name, 
-       NULL AS district,
-       NULL AS comission, 
-       NULL AS admission_date,
-       NULL AS vacation
-FROM sucos_vendas.notas_fiscais WHERE MATRICULA NOT IN (SELECT register FROM TB_SALESPEOPLE);
-
 INSERT INTO INVOICES
 SELECT NUMERO AS number,
 	   DATA_VENDA AS date,
@@ -89,6 +79,15 @@ SELECT NUMERO AS number,
 	   MATRICULA AS register,       
        IMPOSTO AS tax
 FROM sucos_vendas.notas_fiscais;
+
+INSERT INTO TB_SALESPEOPLE SELECT 
+MATRICULA AS register,
+NOME AS name,
+BAIRRO AS district ,
+PERCENTUAL_COMISSAO AS comission,
+DATA_ADMISSAO AS adimission_date,
+DE_FERIAS AS vacation
+FROM sucos_vendas.tabela_de_vendedores WHERE MATRICULA NOT IN (SELECT register FROM TB_SALESPEOPLE);
 
 SELECT * FROM TB_SALESPEOPLE;
 SELECT * FROM INVOICES;
@@ -179,6 +178,8 @@ DROP TABLE ITEMS_INVOICES_2;
     - ROLLBACK: Ignore all operations between START TRANSACTION and ROLLBACK 
 */
 
+
+
 START TRANSACTION;
 SELECT * FROM TB_SALESPEOPLE;
 UPDATE TB_SALESPEOPLE SET comission = comission * 1.15;
@@ -194,3 +195,4 @@ INSERT INTO TB_SALESPEOPLE VALUES
 COMMIT;
 
 SELECT * FROM TB_SALESPEOPLE;
+
